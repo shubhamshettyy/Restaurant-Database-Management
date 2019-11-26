@@ -1,0 +1,120 @@
+
+int EmpId;
+
+static int callback_empid(void *data, int argc, char **argv, char **azColName)
+{
+	for(int i=0;i<argc;i++)
+		sscanf(argv[i],"%d",&EmpId);
+	return 0;
+}
+
+
+int add_update_emp()
+{
+	int choice;
+	printf("1. Add employee record.\n");
+	printf("2. Update existing employee record.\n");
+	printf("Enter choice\n");
+	scanf("%d",&choice);
+	while(1)
+	{
+		switch(choice)
+		{
+			case 1: add_emp();
+					break;
+			case 2: update_emp();
+					break;
+			default: printf("Please enter a valid number (1-9)\n");
+		}
+		break;
+	}
+	return 0;
+}
+
+int add_emp()
+{
+	int n;
+	printf("How many employees do you want to add?\n");
+	scanf("%d",&n);
+	for(int i=0;i<n;i++)
+	{
+		char EmpName[20],Post[20],query[200],Phno[10];
+		int Salary,Month,Year,Date;
+		char q[100]="SELECT EmpId FROM Employee ORDER BY EmpId DESC LIMIT 1";
+		sqlite3_exec(db,q,callback_empid,(void*) data,&err_message);
+		EmpId+=1;
+		printf("Enter name of employee: ");
+		scanf(" %[^\n]%*c",EmpName);
+		printf("Enter post: ");
+		scanf(" %[^\n]%*c",Post);
+		printf("Enter salary: ");
+		scanf("%d",&Salary);
+		printf("Enter Phone number(10 digits): ");
+		scanf("%s",Phno);
+		printf("Enter DOB (DD MM YY): ");
+		scanf("%d %d  %d",&Date,&Month,&Year);
+		sprintf(query,"INSERT INTO Employee VALUES(%d,'%s','%s',%d,%s,'%d-%d-%d')",EmpId,EmpName,Post,Salary,Phno,Year,Month,Date);
+		check=sqlite3_exec(db,query,0,0,&err_message);
+		if(check!=SQLITE_OK)
+				printf("Error\n");
+			else 
+				printf("Employee successfully added.\n");
+	}
+	// char q1[70]="SELECT * FROM Employee";
+	// check=sqlite3_exec(db,q1,callback,(void*) data,&err_message);
+
+	return 0;
+}
+int update_emp()
+{
+	char query[200],post[20],phno[10],salary[10];
+	int n,id,choice;
+	printf("Enter ID of the record you want to update: ");
+	scanf("%d",&id);
+	while(1)
+	{
+		printf("Which field do you want to update?\n");
+		printf("1. Post\n");
+		printf("2. Salary\n");
+		printf("3. Phone Number\n");
+		printf("4. Go back.\n");
+		printf("Enter choice\n");
+		scanf("%d",&choice);			
+		switch(choice)
+		{
+			case 1: printf("Enter New Post: ");			
+					scanf(" %[^\n]%*c",post);
+					sprintf(query,"UPDATE Employee SET Post ='%s' WHERE EmpId=%d",post,id);
+					check=sqlite3_exec(db,query,0,0,&err_message);
+					if(check!=SQLITE_OK)
+						printf("Error\n");
+					else 
+						printf("Updated successfully.\n");
+					break;
+
+			case 2: printf("Enter New Salary: ");			
+					scanf("%s",salary);
+					sprintf(query,"UPDATE Employee SET Salary =%s WHERE EmpId=%d",salary,id);
+					check=sqlite3_exec(db,query,0,0,&err_message);						
+					if(check!=SQLITE_OK)
+						printf("Error\n");
+					else 
+						printf("Updated successfully.\n");
+					break;
+			case 3: printf("Enter New Phone Number: ");			
+					scanf("%s",phno);
+					sprintf(query,"UPDATE Employee SET PhNo =%s WHERE EmpId=%d",phno,id);
+					check=sqlite3_exec(db,query,0,0,&err_message);
+					if(check!=SQLITE_OK)
+						printf("Error\n");
+					else 
+						printf("Updated successfully.\n");
+					break;
+			case 4: return 0;
+
+			default: printf("Please enter a valid number (1-9)\n");
+			}		
+		}
+		
+		return 0;
+}

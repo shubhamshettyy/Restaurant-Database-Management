@@ -1,0 +1,157 @@
+int CustId;
+
+static int callback_custid(void *data, int argc, char **argv, char **azColName)
+{
+	for(int i=0;i<argc;i++)
+		sscanf(argv[i],"%d",&CustId);
+	return 0;
+} 
+
+
+
+int add_update_customer()
+{
+	int choice;
+	printf("1. Add customer.\n");
+	printf("2. Update existing customer record.\n");
+	printf("Enter choice\n");
+	scanf("%d",&choice);
+	while(1)
+	{
+		switch(choice)
+		{
+			//case 1: add_customer();
+					break;
+			case 2: update_customer();
+		}
+		break;
+	}
+	return 0;
+}
+
+int add_customer()
+{
+	int n,check,check1;
+	char married;
+	printf("How many customers do you want to add?\n");
+	scanf("%d",&n);
+	for(int i=0;i<n;i++)
+	{
+		int choice;
+		char query[200];
+		char name[20],phno[10],email[30],Year_DoB[4],Year_DoA[4],Month_DoB[2],Month_DoA[2],Date_DoB[2],Date_DoA[2];
+		char q[100]="SELECT CustomerId FROM Customer ORDER BY CustomerId DESC LIMIT 1;";
+		sqlite3_exec(db,q,callback_custid,(void*) data,&err_message);
+		CustId+=1;
+		printf("%d",CustId);
+		printf("Enter name of customer: ");
+		scanf(" %[^\n]%*c",name);
+		while(check)
+		{
+			printf("Enter phone number: ");
+			scanf(" %[^\n]%*c",phno);
+			check=validate(phno);
+			if(check==1)
+				printf("Only numbers accepted.\n");
+		}
+		printf("Enter email: ");
+		scanf("%s",email);
+		check=1;
+		while(check)
+		{
+			printf("Enter Date of Birth(DD MM YYYY): ");
+			scanf("%s %s %s",Date_DoB,Month_DoB,Year_DoB);
+			check=validate_date(Date_DoB,Month_DoB,Year_DoB)
+			if(check==1)
+				printf("Enter valid Date of Birth.\n");
+		}
+
+		check=1;
+		printf("Are you married? (Y/N)\n");
+		scanf("%s",&married);
+		married=tolower(married);
+		while(check && married=='y')
+		{
+			if(married=='y')
+			{
+				printf("Enter Date of Anniversary(DD MM YYYY): ");
+				scanf("%s %s %s",Date_DoB,Month_DoB,Year_DoB);
+			}
+			check=validate_date(Date_DoA,Month_DoA,Year_DoA)
+			if(check==1)
+				printf("Enter valid Date of Anniversary.\n");
+		}
+		if(married=='y')
+			sprintf(query,"INSERT INTO Customer VALUES(%d,'%s',%s,'%s','%s-%s-%s','%s-%s-%s')",CustId,name,phno,email,Year_DoB,Month_DoB,Date_DoB,Year_DoA,Month_DoA,Date_DoA);
+		else
+			sprintf(query,"INSERT INTO Customer VALUES(%d,'%s',%s,'%s','%s-%s-%s','0-0-0')",CustId,name,phno,email,Year_DoB,Month_DoB,Date_DoB);
+		check1=sqlite3_exec(db,query,0,0,&err_message);
+		if(check1!=SQLITE_OK)
+			printf("Error\n");
+		else 
+			printf("Customer successfully added.\n");
+	}
+	return 0;
+}
+
+int update_customer()
+{
+	char phno[10],email[30];
+	int id,check=1,choice,c;
+	while(check)
+	{
+		printf("Enter Customer ID of the record: ");
+		scanf("%d",&id);
+		check=validate(id);
+		if(check==1)
+			printf("Enter valid Customer ID.\n");
+	}
+	while(1)
+	{
+		printf("Which field do you want to update?\n");
+		printf("1. Phone Number.\n");
+		printf("2. Email.\n");
+		printf("3. Go back.\n");
+		printf("Enter choice\n");
+		scanf("%d",&choice);
+		switch(choice)
+		{
+			 case 1: while(check)
+			 		 {
+			 		 	printf("Enter new Phone Number: ");
+						scanf("%s",phno);
+						check=validate(phno);
+						if(check==1)
+							printf("Enter valid mobile number.\n");
+			 		 }
+					 char q[200];
+					 sprintf(q,"UPDATE Customer SET PhNo=%s WHERE CustomerId=%d;",phno,id);
+					 printf("%s",q);
+					 c=sqlite3_exec(db,q,0,0,&err_message);
+					 if(c!=SQLITE_OK)
+						printf("Error\n");
+					 else 
+						printf("Customer successfully updated.\n");
+					break;
+			 case 2: while(check)
+			 		{
+						printf("Enter new Email ID: ");
+						scanf("%s",email);
+						check=validate(phno);
+						if(check==1)
+							printf("Enter valid Email ID.\n");
+					}
+					char q1[200];
+					sprintf(q1,"UPDATE Customer SET Email='%s' WHERE CustomerId=%d;",email,id);
+					printf("%s\n",q1);
+					c=sqlite3_exec(db,q1,0,0,&err_message);
+					if(c!=SQLITE_OK)
+						printf("Error\n");
+					else 
+						printf("Customer successfully updated.\n");
+					break;
+			case 3: return 0;
+			default: printf("Please enter a valid number.\n");			
+		}
+	}
+}
